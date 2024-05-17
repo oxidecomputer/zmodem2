@@ -257,13 +257,16 @@ impl Header {
         P: Read,
     {
         let encoding = Encoding::try_from(port.read_byte()?)?;
-        let mut out = array_vec!([u8; HEADER_SIZE]);
+        let mut out_hex = array_vec!([u8; HEADER_SIZE]);
         for _ in 0..Header::unescaped_size(encoding) - 1 {
-            out.push(read_byte_unescaped(port)?);
+            out_hex.push(read_byte_unescaped(port)?);
         }
+        let mut out = array_vec!([u8; HEADER_SIZE]);
+        out.set_len(out_hex.len() / 2);
         if encoding == Encoding::ZHEX {
-            hex::decode_in_slice(&mut out).map_err(|_| Error::Data)?;
-            out.truncate(out.len() / 2);
+            hex::decode_to_slice(out_hex, &mut out).map_err(|_| Error::Data)?;
+        } else {
+            out = out_hex;
         }
         check_crc(&out[..5], &out[5..], encoding)?;
         let frame = Frame::try_from(out[0])?;
