@@ -16,7 +16,7 @@ std = []
 bitflags = "2.4.1"
 crc = "3.0.1"
 heapless = "0.8.0"
-hex = "0.4.3"
+hex = { version = "0.4.3", default-features = false }
 strum = { version = "0.25.0", features = ["derive"] }
 strum_macros = { version = "0.25.3", features = [] }
 tinyvec = "1.6.0"

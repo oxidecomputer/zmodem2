@@ -228,9 +228,15 @@ impl Header {
         out.extend_from_slice(&crc[..crc_len]);
         // Skips ZPAD and encoding:
         if self.encoding == Encoding::ZHEX {
-            let hex = hex::encode(&out[0..]);
+            let mut hexbuf = [0u8; HEADER_SIZE];
+            let len = out.len() * 2;
+            if len > hexbuf.len() {
+                return Err(Error::Data);
+            }
+            let hex = &mut hexbuf[..len];
+            hex::encode_to_slice(&out, hex).map_err(|_| Error::Data)?;
             out.truncate(0);
-            out.extend_from_slice(hex.as_bytes());
+            out.extend_from_slice(hex);
         }
         write_slice_escaped(port, &out)?;
         if self.encoding == Encoding::ZHEX {
